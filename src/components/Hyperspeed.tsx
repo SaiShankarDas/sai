@@ -1,4 +1,4 @@
-import { useEffect, useRef, FC } from "react";
+import { useEffect, useRef, FC, forwardRef, useImperativeHandle } from "react";
 import * as THREE from "three";
 import {
   BloomEffect,
@@ -64,6 +64,11 @@ interface HyperspeedOptions {
 
 interface HyperspeedProps {
   effectOptions?: Partial<HyperspeedOptions>;
+}
+
+export interface HyperspeedHandle {
+  speedUp: (ev?: MouseEvent | TouchEvent) => void;
+  slowDown: (ev?: MouseEvent | TouchEvent) => void;
 }
 
 const defaultOptions: HyperspeedOptions = {
@@ -1163,38 +1168,31 @@ class App {
       -(options.roadWidth + options.islandWidth / 2)
     );
 
-    this.container.addEventListener("mousedown", this.onMouseDown);
-    this.container.addEventListener("mouseup", this.onMouseUp);
-    this.container.addEventListener("mouseout", this.onMouseUp);
-    
-    this.container.addEventListener("touchstart", this.onTouchStart, { passive: true });
-    this.container.addEventListener("touchend", this.onTouchEnd, { passive: true });
-    this.container.addEventListener("touchcancel", this.onTouchEnd, { passive: true });
     this.container.addEventListener("contextmenu", this.onContextMenu);
 
     this.tick();
   }
 
-  onMouseDown(ev: MouseEvent) {
-    if (this.options.onSpeedUp) this.options.onSpeedUp(ev);
+  onMouseDown(ev?: MouseEvent | TouchEvent) {
+    if (this.options.onSpeedUp && ev) this.options.onSpeedUp(ev);
     this.fovTarget = this.options.fovSpeedUp;
     this.speedUpTarget = this.options.speedUp;
   }
 
-  onMouseUp(ev: MouseEvent) {
-    if (this.options.onSlowDown) this.options.onSlowDown(ev);
+  onMouseUp(ev?: MouseEvent | TouchEvent) {
+    if (this.options.onSlowDown && ev) this.options.onSlowDown(ev);
     this.fovTarget = this.options.fov;
     this.speedUpTarget = 0;
   }
   
-  onTouchStart(ev: TouchEvent) {
-    if (this.options.onSpeedUp) this.options.onSpeedUp(ev);
+  onTouchStart(ev?: TouchEvent) {
+    if (this.options.onSpeedUp && ev) this.options.onSpeedUp(ev);
     this.fovTarget = this.options.fovSpeedUp;
     this.speedUpTarget = this.options.speedUp;
   }
 
-  onTouchEnd(ev: TouchEvent) {
-    if (this.options.onSlowDown) this.options.onSlowDown(ev);
+  onTouchEnd(ev?: TouchEvent) {
+    if (this.options.onSlowDown && ev) this.options.onSlowDown(ev);
     this.fovTarget = this.options.fov;
     this.speedUpTarget = 0;
   }
@@ -1265,13 +1263,6 @@ class App {
     
     window.removeEventListener("resize", this.onWindowResize.bind(this));
     if (this.container) {
-      this.container.removeEventListener("mousedown", this.onMouseDown);
-      this.container.removeEventListener("mouseup", this.onMouseUp);
-      this.container.removeEventListener("mouseout", this.onMouseUp);
-      
-      this.container.removeEventListener("touchstart", this.onTouchStart);
-      this.container.removeEventListener("touchend", this.onTouchEnd);
-      this.container.removeEventListener("touchcancel", this.onTouchEnd);
       this.container.removeEventListener("contextmenu", this.onContextMenu);
     }
   }
@@ -1294,13 +1285,18 @@ class App {
   }
 }
 
-const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
+const Hyperspeed = forwardRef<HyperspeedHandle, HyperspeedProps>(({ effectOptions = {} }, ref) => {
   const mergedOptions: HyperspeedOptions = {
     ...defaultOptions,
     ...effectOptions,
   };
-  const hyperspeed = useRef<HTMLDivElement>(null);
+  const hyperspeedContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<App | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    speedUp: (ev) => appRef.current?.onMouseDown(ev),
+    slowDown: (ev) => appRef.current?.onMouseUp(ev),
+  }));
 
   useEffect(() => {
     if (appRef.current) {
@@ -1313,7 +1309,7 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
       }
     }
 
-    const container = hyperspeed.current;
+    const container = hyperspeedContainerRef.current;
     if (!container) return;
 
     const options = { ...mergedOptions };
@@ -1332,7 +1328,7 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
     };
   }, [mergedOptions]);
 
-  return <div id="lights" ref={hyperspeed}></div>;
-};
+  return <div id="lights" ref={hyperspeedContainerRef}></div>;
+});
 
 export default Hyperspeed;
