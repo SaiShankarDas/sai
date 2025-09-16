@@ -4,6 +4,8 @@ import CardNav, { CardNavItem } from './CardNav';
 import Footer from './Footer';
 import Hyperspeed, { HyperspeedHandle } from './Hyperspeed';
 import { HyperspeedContext } from '../contexts/HyperspeedContext';
+import WhatsAppButton from './WhatsAppButton';
+import ChatbotController from './Chatbot/ChatbotController';
 
 const Layout = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -27,18 +29,18 @@ const Layout = () => {
       bgColor: isDarkMode ? "#0D0716" : "#E9E6EF",
       textColor: isDarkMode ? "#fff" : "#000",
       links: [
-        { label: "Explore All", href: "/products", ariaLabel: "View All Products" },
+        { label: "Explore by Industry", href: "/products", ariaLabel: "View All Products" },
         { label: "AI Calling Agent", href: "/products", ariaLabel: "View AI Calling Agent" },
         { label: "SEO Genie", href: "/products", ariaLabel: "View SEO Genie" }
       ]
     },
     {
-      label: "ImageGen",
+      label: "Dashboard",
       bgColor: isDarkMode ? "#170D27" : "#DAD4E4",
       textColor: isDarkMode ? "#fff" : "#000",
       links: [
-        { label: "Launch App", href: "https://imagegen.example.com", ariaLabel: "Launch ImageGen App" },
-        { label: "View Gallery", href: "#", ariaLabel: "View ImageGen Gallery" },
+        { label: "View Analytics", href: "/dashboard", ariaLabel: "Go to Dashboard" },
+        { label: "Campaign Performance", href: "/dashboard", ariaLabel: "View Campaign Performance" },
       ]
     },
     {
@@ -109,6 +111,8 @@ const Layout = () => {
         </main>
       </HyperspeedContext.Provider>
       <Footer />
+      <WhatsAppButton />
+      <ChatbotController />
     </>
   );
 };
